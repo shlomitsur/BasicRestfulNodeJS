@@ -4,7 +4,8 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const  mysql = require('mysql');
+const mysql = require('mysql');
+const geoip = require('geoip-lite');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -20,14 +21,6 @@ var connection = mysql.createConnection({
 });
 
 connection.connect()
-
-connection.query('SELECT * from events', function (err, rows, fields) {
-  if (err) throw err
-
-  console.log('The solution is: ', rows[0])
-})
-
-
 
 
 app.get('/api/events', (request, response) => {
@@ -52,8 +45,17 @@ app.get('/api/events/:id', (request, response) => {
   response.json(evnt[0]);
 });
 
+function getCountry(ip)
+{
+  const geo = geoip.lookup(ip);
+  console.log("country");
+
+console.log(geo['country']);
+  return geo != null ? geo['country'] : "";
+};
+
 app.post('/api/events', (request, response) => {
- 
+  console.log("got post request"); 
   let evnt = {
     id: null,
     timestamp: request.body.timestamp,
@@ -62,8 +64,10 @@ app.post('/api/events', (request, response) => {
     page_url: request.body.page_url,
     page_referrer: request.body.page_referrer,
     user_agent: request.body.user_agent,
+    browser: null,
     screen_resolution: request.body.screen_resolution,
-    user_ip: request.body.user_ip
+    user_ip: request.body.user_ip,
+    country: getCountry(request.body.user_ip)
   };
 
   console.log (evnt);
@@ -79,6 +83,23 @@ app.post('/api/events', (request, response) => {
   response.json(evnt);
 
 });
+
+
+app.get('/api/events/country', (request, response) => {
+
+  let evntId = request.params.id;
+
+  let evnt = events.filter(evnt => {
+    return evnt.id == evntId;
+  });
+
+  if (!evnt) {
+    response.status(404).json({ message: 'Contact not found' });
+  }
+
+  response.json(evnt[0]);
+});
+
 
 app.put('/api/events/:id', (request, response) => {
 
