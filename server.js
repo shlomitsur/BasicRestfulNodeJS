@@ -85,19 +85,19 @@ app.post('/api/events', (request, response) => {
 });
 
 
-app.get('/api/events/country', (request, response) => {
+app.get('/api/events/country/:id', (request, response) => {
 
-  let evntId = request.params.id;
+  let country = request.params.id;
+  var page_views = 0;
+  connection.query('SELECT COUNT(*) AS page_views FROM events WHERE country =  ? ', country, function (err, rows, fields) {
+console.log('this.sql', this.sql); //command/query
+  console.log(rows);
+  if (err) throw err
+  page_views = rows[0]['page_views'];
+  console.log('The solution is: ', page_views)
+  response.json(page_views);
+})
 
-  let evnt = events.filter(evnt => {
-    return evnt.id == evntId;
-  });
-
-  if (!evnt) {
-    response.status(404).json({ message: 'Contact not found' });
-  }
-
-  response.json(evnt[0]);
 });
 
 
