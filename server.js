@@ -6,6 +6,8 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const mysql = require('mysql');
 const geoip = require('geoip-lite');
+const useragent = require('express-useragent');
+
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -54,6 +56,15 @@ console.log(geo['country']);
   return geo != null ? geo['country'] : "";
 };
 
+function getBrowser(user_agent)
+{
+  const ua = useragent.parse(user_agent);
+  console.log("browser");
+  console.log(ua['browser']);
+  return ua != null ? ua['browser'] : "";
+};
+
+
 app.post('/api/events', (request, response) => {
   console.log("got post request"); 
   let evnt = {
@@ -64,7 +75,7 @@ app.post('/api/events', (request, response) => {
     page_url: request.body.page_url,
     page_referrer: request.body.page_referrer,
     user_agent: request.body.user_agent,
-    browser: null,
+    browser: getBrowser(request.body.user_agent),
     screen_resolution: request.body.screen_resolution,
     user_ip: request.body.user_ip,
     country: getCountry(request.body.user_ip)
@@ -90,6 +101,22 @@ app.get('/api/events/country/:id', (request, response) => {
   let country = request.params.id;
   var page_views = 0;
   connection.query('SELECT COUNT(*) AS page_views FROM events WHERE country =  ? ', country, function (err, rows, fields) {
+console.log('this.sql', this.sql); //command/query
+  console.log(rows);
+  if (err) throw err
+  page_views = rows[0]['page_views'];
+  console.log('The solution is: ', page_views)
+  response.json(page_views);
+})
+
+});
+
+
+app.get('/api/events/browser/:id', (request, response) => {
+
+  let browser = request.params.id;
+  var page_views = 0;
+  connection.query('SELECT COUNT(*) AS page_views FROM events WHERE browser =  ? ', browser, function (err, rows, fields) {
 console.log('this.sql', this.sql); //command/query
   console.log(rows);
   if (err) throw err
