@@ -14,6 +14,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 
 let events = require('./data');
+const AUTHENTICATION_STRING = "6i2nSgWu0DfYIE8I0ZBJOtxTmHJATRzu"; //TODOSHLOMI move to property file
 
 var connection = mysql.createConnection({
   host     : 'mysql-test.playbuzz.com',
@@ -25,7 +26,7 @@ var connection = mysql.createConnection({
 connection.connect()
 
 app.use(function(req, res, next) {
-  if ((req.method === 'GET') && !req.headers.authorization) {
+  if ((req.method === 'GET') && (req.headers.authorization != AUTHENTICATION_STRING)) {
     return res.status(403).json({ error: 'No credentials sent!' });
   }
   next();
