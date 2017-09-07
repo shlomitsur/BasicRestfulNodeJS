@@ -8,7 +8,6 @@ const mysql = require('mysql');
 const geoip = require('geoip-lite');
 const useragent = require('express-useragent');
 
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
@@ -30,28 +29,6 @@ app.use(function(req, res, next) {
     return res.status(403).json({ error: 'No credentials sent!' });
   }
   next();
-});
-
-app.get('/api/events', (request, response) => {
-  if (!events) {
-    response.status(404).json({ message: 'No events found.' });
-  }
-  response.json(events);
-});
-
-app.get('/api/events/:id', (request, response) => {
-
-  let evntId = request.params.id;
-
-  let evnt = events.filter(evnt => {
-    return evnt.id == evntId;
-  });
-
-  if (!evnt) {
-    response.status(404).json({ message: 'Contact not found' });
-  }
-
-  response.json(evnt[0]);
 });
 
 function getCountry(ip)
@@ -102,19 +79,20 @@ app.post('/api/events', (request, response) => {
 
 function getPageViewsByCountry()
 {
+return new Promise( function(resolve , reject ){
+  console.log("by country");
   connection.query('SELECT COUNT(*) AS page_views, country FROM events GROUP BY country', null, function (err, rows, fields) {
   console.log('this.sql', this.sql);
   console.log(rows);
   if (err) throw err
-  return JSON.stringify(rows);
+  return resolve(JSON.stringify(rows));
 })
+});
 };
 
 function getPageViewByCountryId(id)
 {
 return new Promise( function(resolve , reject ){
-  if(id == "") 
-    return resolve(getPageViewsByCountry());
   var page_views = 0;
   connection.query('SELECT COUNT(*) AS page_views FROM events WHERE country =  ? ', id, function (err, rows, fields) {
   console.log('this.sql', this.sql); //command/query
@@ -131,8 +109,6 @@ return new Promise( function(resolve , reject ){
 function getPageViewByPageId(id)
 {
 return new Promise( function(resolve , reject ){
-  if(id == "")
-    return resolve(getPageViewsByCountry());
   var page_views = 0;
   connection.query('SELECT COUNT(*) AS page_views FROM events WHERE page_id =  ? ', id, function (err, rows, fields) {
   console.log('this.sql', this.sql); //command/query
@@ -146,19 +122,27 @@ return new Promise( function(resolve , reject ){
 };
 
 
-app.get('/api/events/country/:id', (request, response) => {
+app.get('/api/events/countries/', (request, response) => {
+  let countryId = request.params.id;
+  getPageViewsByCountry().then(function (res){
+    response.json(res);
+  });
+})
+
+
+app.get('/api/events/countries/:id', (request, response) => {
   let countryId = request.params.id;
   getPageViewByCountryId(countryId).then(function (res){
     response.json(res);
   });
 })
 
-app.get('/api/events/browser/:id', (request, response) => {
+app.get('/api/events/browsers/:id', (request, response) => {
 
   let browser = request.params.id;
   var page_views = 0;
   connection.query('SELECT COUNT(*) AS page_views FROM events WHERE browser =  ? ', browser, function (err, rows, fields) {
-console.log('this.sql', this.sql); //command/query
+console.log('this.sql', this.sql);
   console.log(rows);
   if (err) throw err
   page_views = rows[0]['page_views'];
@@ -179,9 +163,7 @@ app.get('/api/events/pages/:id', (request, response) => {
 
 const port = 3001;
 const server = app.listen(port, () => {
-
-  console.log(`Server running at http://localhost:${port}/`);
-  
+  console.log('Server running');
 });
 
 //connection.end();
