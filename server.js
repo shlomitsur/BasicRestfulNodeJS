@@ -24,6 +24,12 @@ var connection = mysql.createConnection({
 
 connection.connect()
 
+app.use(function(req, res, next) {
+  if ((req.method === 'GET') && !req.headers.authorization) {
+    return res.status(403).json({ error: 'No credentials sent!' });
+  }
+  next();
+});
 
 app.get('/api/events', (request, response) => {
   if (!events) {
