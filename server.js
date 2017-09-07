@@ -114,6 +114,7 @@ function getPageViewsByCountry()
 
 function getPageViewByCountryId(id)
 {
+return new Promise( function(resolve , reject ){
   var page_views = 0;
   connection.query('SELECT COUNT(*) AS page_views FROM events WHERE country =  ? ', id, function (err, rows, fields) {
   console.log('this.sql', this.sql); //command/query
@@ -121,8 +122,9 @@ function getPageViewByCountryId(id)
   if (err) throw err
   page_views = rows[0]['page_views'];
   console.log("i am returning "+page_views);
-  return page_views;
+  return resolve(page_views);
 })
+});
 };
 
 app.get('/api/events/country/:id', (request, response) => {
@@ -131,7 +133,9 @@ app.get('/api/events/country/:id', (request, response) => {
   var res = 0;
   res = getPageViewByCountryId(countryId);
   console.log('hello');
-  response.json(getPageViewByCountryId(countryId));
+getPageViewByCountryId(countryId).then(function (res){
+    response.json(res);
+  });
 })
 
 app.get('/api/events/browser/:id', (request, response) => {
