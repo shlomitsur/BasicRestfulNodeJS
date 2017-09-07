@@ -24,14 +24,14 @@ var connection = mysql.createConnection({
 });
 
 connection.connect()
-/*
+
 app.use(function(req, res, next) {
   if ((req.method === 'GET') && (req.headers.authorization != AUTHENTICATION_STRING)) {
     return res.status(403).json({ error: 'No credentials sent!' });
   }
   next();
 });
-*/
+
 app.get('/api/events', (request, response) => {
   if (!events) {
     response.status(404).json({ message: 'No events found.' });
@@ -96,8 +96,6 @@ app.post('/api/events', (request, response) => {
 
   console.log('The solution is: ', rows[0])
 })
-
-
   response.json(evnt);
 
 });
@@ -115,7 +113,7 @@ function getPageViewsByCountry()
 function getPageViewByCountryId(id)
 {
 return new Promise( function(resolve , reject ){
-  if(id == null) 
+  if(id == "") 
     return resolve(getPageViewsByCountry());
   var page_views = 0;
   connection.query('SELECT COUNT(*) AS page_views FROM events WHERE country =  ? ', id, function (err, rows, fields) {
@@ -128,6 +126,25 @@ return new Promise( function(resolve , reject ){
 })
 });
 };
+
+
+function getPageViewByPageId(id)
+{
+return new Promise( function(resolve , reject ){
+  if(id == "")
+    return resolve(getPageViewsByCountry());
+  var page_views = 0;
+  connection.query('SELECT COUNT(*) AS page_views FROM events WHERE page_id =  ? ', id, function (err, rows, fields) {
+  console.log('this.sql', this.sql); //command/query
+  console.log(rows);
+  if (err) throw err
+  page_views = rows[0]['page_views'];
+  console.log("i am returning "+page_views);
+  return resolve(page_views);
+})
+});
+};
+
 
 app.get('/api/events/country/:id', (request, response) => {
   let countryId = request.params.id;
@@ -151,47 +168,16 @@ console.log('this.sql', this.sql); //command/query
 
 });
 
-
-app.put('/api/events/:id', (request, response) => {
-
-  let evntId = request.params.id;
-
-  let evnt = events.filter(evnt => {
-    return evnt.id == evntId;
-  })[0];
-
-  const index = events.indexOf(evnt);
-
-  let keys = Object.keys(request.body);
-
-  keys.forEach(key => {
-    evnt[key] = request.body[key];
+app.get('/api/events/pages/:id', (request, response) => {
+  let pageId = request.params.id;
+  getPageViewByPageId(pageId).then(function (res){
+    response.json(res);
   });
+})
 
-  events[index] = evnt;
 
-  // response.json({ message: `User ${evntId} updated.`});
-  response.json(events[index]);
-});
-
-app.delete('/api/events/:id', (request, response) => {
-  
-  let evntId = request.params.id;
-
-  let evnt = events.filter(evnt => {
-    return evnt.id == evntId;
-  })[0];
-
-  const index = events.indexOf(evnt);
-
-  events.splice(index, 1);
-
-  response.json({ message: `User ${evntId} deleted.`});
-
-});
 
 const port = 3001;
-
 const server = app.listen(port, () => {
 
   console.log(`Server running at http://localhost:${port}/`);
