@@ -24,14 +24,14 @@ var connection = mysql.createConnection({
 });
 
 connection.connect()
-
+/*
 app.use(function(req, res, next) {
   if ((req.method === 'GET') && (req.headers.authorization != AUTHENTICATION_STRING)) {
     return res.status(403).json({ error: 'No credentials sent!' });
   }
   next();
 });
-
+*/
 app.get('/api/events', (request, response) => {
   if (!events) {
     response.status(404).json({ message: 'No events found.' });
@@ -102,22 +102,37 @@ app.post('/api/events', (request, response) => {
 
 });
 
+function getPageViewsByCountry()
+{
+  connection.query('SELECT COUNT(*) AS page_views, country FROM events GROUP BY country', null, function (err, rows, fields) {
+  console.log('this.sql', this.sql);
+  console.log(rows);
+  if (err) throw err
+  return JSON.stringify(rows);
+})
+};
 
-app.get('/api/events/country/:id', (request, response) => {
-
-  let country = request.params.id;
+function getPageViewByCountryId(id)
+{
   var page_views = 0;
-  connection.query('SELECT COUNT(*) AS page_views FROM events WHERE country =  ? ', country, function (err, rows, fields) {
-console.log('this.sql', this.sql); //command/query
+  connection.query('SELECT COUNT(*) AS page_views FROM events WHERE country =  ? ', id, function (err, rows, fields) {
+  console.log('this.sql', this.sql); //command/query
   console.log(rows);
   if (err) throw err
   page_views = rows[0]['page_views'];
-  console.log('The solution is: ', page_views)
-  response.json(page_views);
+  console.log("i am returning "+page_views);
+  return page_views;
 })
+};
 
-});
-
+app.get('/api/events/country/:id', (request, response) => {
+  let countryId = request.params.id;
+//  let res = ((countryId == null) ? getPageViewsByCountry() : getPageViewByCountryId(countryId));
+  var res = 0;
+  res = getPageViewByCountryId(countryId);
+  console.log('hello');
+  response.json(getPageViewByCountryId(countryId));
+})
 
 app.get('/api/events/browser/:id', (request, response) => {
 
