@@ -22,6 +22,7 @@ app.use(function(req, res, next) {
   next();
 });
 
+//TODOSHLOMI when I'm calling this fun. from the helper I'm getting RefferenceError, fix & remove from here
 function saveEvent(request)
 {
 return new Promise( function(resolve , reject ){
@@ -46,6 +47,7 @@ return new Promise( function(resolve , reject ){
 });
 };
 
+//TODOSHLOMI move all routings to a controller module
 
 app.post('/api/events', (request, response) => {
   saveEvent(request).then(function (res){
