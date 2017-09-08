@@ -4,7 +4,7 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const mysql = require('mysql');
+const db = require('./lib/mysqlconn');
 const helpers = require('./lib/filterHelpers');
 
 app.use(bodyParser.json());
@@ -14,19 +14,8 @@ app.use(cors());
 
 const SERVER_PORT = 3001;
 const AUTHENTICATION_STRING = "6i2nSgWu0DfYIE8I0ZBJOtxTmHJATRzu"; 
-const DB_HOST = "mysql-test.playbuzz.com"; 
-const DB_USER = "root"; 
-const DB_PASS = "Sharona12#"; 
-const DB_NAME = "i_want_so_much_to_hire_shlomi_tsur"; 
 
-var connection = mysql.createConnection({
-  host     : DB_HOST,
-  user     : DB_USER,
-  password : DB_PASS,
-  database : DB_NAME
-});
-
-connection.connect()
+db.connection.connect()
 
 app.use(function(req, res, next) {
   if ((req.method === 'GET') && (req.headers.authorization != AUTHENTICATION_STRING)) {
@@ -50,10 +39,8 @@ app.post('/api/events', (request, response) => {
     user_ip: request.body.user_ip,
     country: helpers.getCountry(request.body.user_ip)
   };
-
   console.log (evnt);
-
-  connection.query('INSERT INTO events SET ? ', evnt, function (err, rows, fields) {
+  db.connection.query('INSERT INTO events SET ? ', evnt, function (err, rows, fields) {
   if (err) throw err
 })
   response.json(evnt);
@@ -93,4 +80,4 @@ const server = app.listen(SERVER_PORT, () => {
   console.log('Server running');
 });
 
-//connection.end();
+//db.connection.end();
