@@ -48,35 +48,6 @@ function getBrowser(user_agent)
   return ua != null ? ua['browser'] : "";
 };
 
-
-app.post('/api/events', (request, response) => {
-  console.log("got post request"); 
-  let evnt = {
-    id: null,
-    timestamp: request.body.timestamp,
-    user_id: request.body.user_id,
-    page_id: request.body.page_id,
-    page_url: request.body.page_url,
-    page_referrer: request.body.page_referrer,
-    user_agent: request.body.user_agent,
-    browser: getBrowser(request.body.user_agent),
-    screen_resolution: request.body.screen_resolution,
-    user_ip: request.body.user_ip,
-    country: getCountry(request.body.user_ip)
-  };
-
-  console.log (evnt);
-  events.push(evnt);
-
-  connection.query('INSERT INTO events SET ? ', evnt, function (err, rows, fields) {
-  if (err) throw err
-
-  console.log('The solution is: ', rows[0])
-})
-  response.json(evnt);
-
-});
-
 function getPageViewsByCountry()
 {
 return new Promise( function(resolve , reject ){
@@ -134,6 +105,36 @@ return new Promise( function(resolve , reject ){
 })
 });
 };
+
+
+app.post('/api/events', (request, response) => {
+  console.log("got post request");
+  let evnt = {
+    id: null,
+    timestamp: request.body.timestamp,
+    user_id: request.body.user_id,
+    page_id: request.body.page_id,
+    page_url: request.body.page_url,
+    page_referrer: request.body.page_referrer,
+    user_agent: request.body.user_agent,
+    browser: getBrowser(request.body.user_agent),
+    screen_resolution: request.body.screen_resolution,
+    user_ip: request.body.user_ip,
+    country: getCountry(request.body.user_ip)
+  };
+
+  console.log (evnt);
+  events.push(evnt);
+
+  connection.query('INSERT INTO events SET ? ', evnt, function (err, rows, fields) {
+  if (err) throw err
+
+  console.log('The solution is: ', rows[0])
+})
+  response.json(evnt);
+
+});
+
 
 app.get('/api/events/countries/', (request, response) => {
   let countryId = request.params.id;
