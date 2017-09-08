@@ -121,6 +121,19 @@ return new Promise( function(resolve , reject ){
 });
 };
 
+function getPageViewByBrowserId(id)
+{
+return new Promise( function(resolve , reject ){
+  connection.query('SELECT COUNT(*) AS page_views FROM events WHERE browser =  ? ', id, function (err, rows, fields) {
+  console.log('this.sql', this.sql);
+  console.log(rows);
+  if (err) throw err
+  const page_views = rows[0]['page_views'];
+  console.log('The solution is: ', page_views)
+  return resolve(page_views);
+})
+});
+};
 
 app.get('/api/events/countries/', (request, response) => {
   let countryId = request.params.id;
@@ -139,17 +152,10 @@ app.get('/api/events/countries/:id', (request, response) => {
 
 app.get('/api/events/browsers/:id', (request, response) => {
 
-  let browser = request.params.id;
-  var page_views = 0;
-  connection.query('SELECT COUNT(*) AS page_views FROM events WHERE browser =  ? ', browser, function (err, rows, fields) {
-console.log('this.sql', this.sql);
-  console.log(rows);
-  if (err) throw err
-  page_views = rows[0]['page_views'];
-  console.log('The solution is: ', page_views)
-  response.json(page_views);
+  let browserId = request.params.id;
+  getPageViewByBrowserId(browserId).then(function (res){
+    response.json(res);
 })
-
 });
 
 app.get('/api/events/pages/:id', (request, response) => {
