@@ -5,15 +5,12 @@ const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const mysql = require('mysql');
-const geoip = require('geoip-lite');
-const useragent = require('express-useragent');
 const helpers = require('./lib/filterHelpers');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 
-let events = require('./data');
 const AUTHENTICATION_STRING = "6i2nSgWu0DfYIE8I0ZBJOtxTmHJATRzu"; //TODOSHLOMI move to property file
 
 var connection = mysql.createConnection({
@@ -32,74 +29,6 @@ app.use(function(req, res, next) {
   next();
 });
 
-function getCountry(ip)
-{
-  const geo = geoip.lookup(ip);
-  console.log("country");
-
-console.log(geo['country']);
-  return geo != null ? geo['country'] : "";
-};
-
-function getPageViewsByCountry()
-{
-return new Promise( function(resolve , reject ){
-  console.log("by country");
-  connection.query('SELECT COUNT(*) AS page_views, country FROM events GROUP BY country', null, function (err, rows, fields) {
-  console.log('this.sql', this.sql);
-  console.log(rows);
-  if (err) throw err
-  return resolve(JSON.stringify(rows));
-})
-});
-};
-
-function getPageViewByCountryId(id)
-{
-return new Promise( function(resolve , reject ){
-  var page_views = 0;
-  connection.query('SELECT COUNT(*) AS page_views FROM events WHERE country =  ? ', id, function (err, rows, fields) {
-  console.log('this.sql', this.sql); //command/query
-  console.log(rows);
-  if (err) throw err
-  page_views = rows[0]['page_views'];
-  console.log("i am returning "+page_views);
-  return resolve(page_views);
-})
-});
-};
-
-
-function getPageViewByPageId(id)
-{
-return new Promise( function(resolve , reject ){
-  var page_views = 0;
-  connection.query('SELECT COUNT(*) AS page_views FROM events WHERE page_id =  ? ', id, function (err, rows, fields) {
-  console.log('this.sql', this.sql); //command/query
-  console.log(rows);
-  if (err) throw err
-  page_views = rows[0]['page_views'];
-  console.log("i am returning "+page_views);
-  return resolve(page_views);
-})
-});
-};
-
-function getPageViewByBrowserId(id)
-{
-return new Promise( function(resolve , reject ){
-  connection.query('SELECT COUNT(*) AS page_views FROM events WHERE browser =  ? ', id, function (err, rows, fields) {
-  console.log('this.sql', this.sql);
-  console.log(rows);
-  if (err) throw err
-  const page_views = rows[0]['page_views'];
-  console.log('The solution is: ', page_views)
-  return resolve(page_views);
-})
-});
-};
-
-
 app.post('/api/events', (request, response) => {
   console.log("got post request");
   let evnt = {
@@ -113,7 +42,7 @@ app.post('/api/events', (request, response) => {
     browser: helpers.getBrowser(request.body.user_agent),
     screen_resolution: request.body.screen_resolution,
     user_ip: request.body.user_ip,
-    country: getCountry(request.body.user_ip)
+    country: helpers.getCountry(request.body.user_ip)
   };
 
   console.log (evnt);
@@ -130,36 +59,33 @@ app.post('/api/events', (request, response) => {
 
 
 app.get('/api/events/countries/', (request, response) => {
-  let countryId = request.params.id;
-  getPageViewsByCountry().then(function (res){
+  const countryId = request.params.id;
+  helpers.getPageViewsByCountry().then(function (res){
     response.json(res);
   });
 })
 
 
 app.get('/api/events/countries/:id', (request, response) => {
-  let countryId = request.params.id;
-  getPageViewByCountryId(countryId).then(function (res){
+  const countryId = request.params.id;
+  helpers.getPageViewByCountryId(countryId).then(function (res){
     response.json(res);
   });
 })
 
 app.get('/api/events/browsers/:id', (request, response) => {
-
-  let browserId = request.params.id;
-  getPageViewByBrowserId(browserId).then(function (res){
+  const browserId = request.params.id;
+  helpers.getPageViewByBrowserId(browserId).then(function (res){
     response.json(res);
 })
 });
 
 app.get('/api/events/pages/:id', (request, response) => {
-  let pageId = request.params.id;
-  getPageViewByPageId(pageId).then(function (res){
+  const pageId = request.params.id;
+  helpers.getPageViewByPageId(pageId).then(function (res){
     response.json(res);
   });
 })
-
-
 
 const port = 3001;
 const server = app.listen(port, () => {
