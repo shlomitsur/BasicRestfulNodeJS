@@ -7,6 +7,7 @@ const cors = require('cors');
 const db = require('./lib/mysqlconn');
 const helpers = require('./lib/filterHelpers');
 const SERVER_PORT = 3001;
+//TODOSHLOMI move to a property file
 const AUTHENTICATION_STRING = "6i2nSgWu0DfYIE8I0ZBJOtxTmHJATRzu";
 
 app.use(bodyParser.json());
@@ -55,7 +56,7 @@ app.post('/api/events', (request, response) => {
   });
 })
 
-
+//here I'm adding a findall() to the endpoint, not sure if required so it's only for countries
 app.get('/api/events/countries/', (request, response) => {
   helpers.getPageViewsByCountry().then(function (res){
     response.json(res);
