@@ -7,6 +7,7 @@ const cors = require('cors');
 const mysql = require('mysql');
 const geoip = require('geoip-lite');
 const useragent = require('express-useragent');
+const helpers = require('./lib/filterHelpers');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -38,14 +39,6 @@ function getCountry(ip)
 
 console.log(geo['country']);
   return geo != null ? geo['country'] : "";
-};
-
-function getBrowser(user_agent)
-{
-  const ua = useragent.parse(user_agent);
-  console.log("browser");
-  console.log(ua['browser']);
-  return ua != null ? ua['browser'] : "";
 };
 
 function getPageViewsByCountry()
@@ -117,7 +110,7 @@ app.post('/api/events', (request, response) => {
     page_url: request.body.page_url,
     page_referrer: request.body.page_referrer,
     user_agent: request.body.user_agent,
-    browser: getBrowser(request.body.user_agent),
+    browser: helpers.getBrowser(request.body.user_agent),
     screen_resolution: request.body.screen_resolution,
     user_ip: request.body.user_ip,
     country: getCountry(request.body.user_ip)
