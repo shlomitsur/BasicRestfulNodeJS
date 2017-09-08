@@ -11,13 +11,19 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 
-const AUTHENTICATION_STRING = "6i2nSgWu0DfYIE8I0ZBJOtxTmHJATRzu"; //TODOSHLOMI move to property file
+
+const SERVER_PORT = 3001;
+const AUTHENTICATION_STRING = "6i2nSgWu0DfYIE8I0ZBJOtxTmHJATRzu"; 
+const DB_HOST = "mysql-test.playbuzz.com"; 
+const DB_USER = "root"; 
+const DB_PASS = "Sharona12#"; 
+const DB_NAME = "i_want_so_much_to_hire_shlomi_tsur"; 
 
 var connection = mysql.createConnection({
-  host     : 'mysql-test.playbuzz.com',
-  user     : 'root',
-  password : 'Sharona12#',
-  database : 'i_want_so_much_to_hire_shlomi_tsur'
+  host     : DB_HOST,
+  user     : DB_USER,
+  password : DB_PASS,
+  database : DB_NAME
 });
 
 connection.connect()
@@ -46,15 +52,11 @@ app.post('/api/events', (request, response) => {
   };
 
   console.log (evnt);
-  events.push(evnt);
 
   connection.query('INSERT INTO events SET ? ', evnt, function (err, rows, fields) {
   if (err) throw err
-
-  console.log('The solution is: ', rows[0])
 })
   response.json(evnt);
-
 });
 
 
@@ -87,8 +89,7 @@ app.get('/api/events/pages/:id', (request, response) => {
   });
 })
 
-const port = 3001;
-const server = app.listen(port, () => {
+const server = app.listen(SERVER_PORT, () => {
   console.log('Server running');
 });
 
