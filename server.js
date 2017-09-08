@@ -6,14 +6,12 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const db = require('./lib/mysqlconn');
 const helpers = require('./lib/filterHelpers');
+const SERVER_PORT = 3001;
+const AUTHENTICATION_STRING = "6i2nSgWu0DfYIE8I0ZBJOtxTmHJATRzu";
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
-
-
-const SERVER_PORT = 3001;
-const AUTHENTICATION_STRING = "6i2nSgWu0DfYIE8I0ZBJOtxTmHJATRzu"; 
 
 db.connection.connect()
 
@@ -24,8 +22,9 @@ app.use(function(req, res, next) {
   next();
 });
 
-app.post('/api/events', (request, response) => {
-  console.log("got post request");
+function saveEvent(request)
+{
+return new Promise( function(resolve , reject ){
   let evnt = {
     id: null,
     timestamp: request.body.timestamp,
@@ -42,13 +41,20 @@ app.post('/api/events', (request, response) => {
   console.log (evnt);
   db.connection.query('INSERT INTO events SET ? ', evnt, function (err, rows, fields) {
   if (err) throw err
+  return resolve("yes!");
 })
-  response.json(evnt);
 });
+};
+
+
+app.post('/api/events', (request, response) => {
+  saveEvent(request).then(function (res){
+    response.json(res);
+  });
+})
 
 
 app.get('/api/events/countries/', (request, response) => {
-  const countryId = request.params.id;
   helpers.getPageViewsByCountry().then(function (res){
     response.json(res);
   });
